@@ -27,15 +27,17 @@ enum CalcState
 {
 	ShowingPrevious,
 	Number,
+	StartingNumber,
 	Error,
 }
 
 class CalcImpl
 {
-	private state = CalcState.Number;
+	private state = CalcState.StartingNumber;
 	private decimalPlace: number = 1;
 	private currentValue: number = 0;
 	private previousValue: number = 0;
+	private sign: number = 1;
 	private pendingOperation: CalcKey = CalcKey.OpEquals;
 
 	constructor()
@@ -46,18 +48,19 @@ class CalcImpl
 		switch( this.state )
 		{
 			case CalcState.ShowingPrevious:
-				this.state = CalcState.Number;
 				switch( key )
 				{
-					case CalcKey.OpPlus:
 					case CalcKey.OpMinus:
+					case CalcKey.OpPlus:
 					case CalcKey.OpMultiply:
 					case CalcKey.OpDivide:
 					case CalcKey.OpEquals:
+						this.state = CalcState.StartingNumber;
 						this.pendingOperation = key;
 						break;
 
 					default:
+						this.state = CalcState.Number;
 						this.processKey_Number( key );
 				}
 				break;
@@ -66,6 +69,16 @@ class CalcImpl
 				this.state = CalcState.Number;
 				this.processKey_Number( key );
 				break;
+
+			case CalcState.StartingNumber:
+				this.state = CalcState.Number;
+				if( key == CalcKey.OpMinus )
+				{
+					// this is a negative number
+					this.sign = -1;
+					break;
+				}
+				// FALL THROUGH TO NUMBER!
 
 			case CalcState.Number:
 				this.processKey_Number( key );
@@ -123,12 +136,14 @@ class CalcImpl
 				this.pendingOperation = key;
 				this.decimalPlace = 1;
 				this.currentValue = 0;
+				this.sign = 1;
 				this.state = CalcState.ShowingPrevious;
 		}
 	}
 
 	private resolvePendingOp()
 	{
+		let realCurrentValue = this.sign * this.currentValue;
 		switch( this.pendingOperation )
 		{
 			case CalcKey.OpDivide:
@@ -138,23 +153,23 @@ class CalcImpl
 				}
 				else
 				{
-					this.previousValue = this.previousValue / this.currentValue;
+					this.previousValue = this.previousValue / realCurrentValue;
 				}
 				break;
 
 			case CalcKey.OpMultiply:
-				this.previousValue = this.previousValue * this.currentValue;
+				this.previousValue = this.previousValue * realCurrentValue;
 				break;
 
 			case CalcKey.OpMinus:
-				this.previousValue = this.previousValue - this.currentValue;
+				this.previousValue = this.previousValue - realCurrentValue;
 				break;
 			case CalcKey.OpPlus:
-				this.previousValue = this.previousValue + this.currentValue;
+				this.previousValue = this.previousValue + realCurrentValue;
 				break;
 
 			case CalcKey.OpEquals:
-				this.previousValue = this.currentValue;
+				this.previousValue = realCurrentValue;
 				break;
 		}
 		this.pendingOperation = CalcKey.OpEquals;
@@ -172,8 +187,14 @@ class CalcImpl
 			case CalcState.Error:
 				return "Error";
 
+			case CalcState.StartingNumber:
+				return "";
+
 			case CalcState.Number:
-				return this.currentValue.toString();
+				if( this.sign == -1 && this.currentValue == 0 )
+					return "-";
+				else
+					return ( this.sign * this.currentValue ).toString();
 			
 			case CalcState.ShowingPrevious:
 				return this.previousValue.toString();
