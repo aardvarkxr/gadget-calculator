@@ -1,6 +1,28 @@
-import { AvStandardGrabbable, GrabbableStyle, renderAardvarkRoot } from '@aardvarkxr/aardvark-react';
-import { g_builtinModelBox } from '@aardvarkxr/aardvark-shared';
+import { AvGrabButton, AvModel, AvPanel, AvPrimitive, AvStandardGrabbable, AvTransform, DefaultLanding, GrabbableStyle, PrimitiveType, renderAardvarkRoot } from '@aardvarkxr/aardvark-react';
+import { AvVolume, EVolumeType, g_builtinModelBox } from '@aardvarkxr/aardvark-shared';
 import * as React from 'react';
+
+export const g_CalcIcon = "models/CalculatorIcon.glb";
+export const g_CalcHandle = "models/CalculatorHandle.glb";
+
+export const g_Button0 = "models/button0.glb";
+export const g_Button1 = "models/button1.glb";
+export const g_Button2 = "models/button2.glb";
+export const g_Button3 = "models/button3.glb";
+export const g_Button4 = "models/button4.glb";
+export const g_Button5 = "models/button5.glb";
+export const g_Button6 = "models/button6.glb";
+export const g_Button7 = "models/button7.glb";
+export const g_Button8 = "models/button8.glb";
+export const g_Button9 = "models/button9.glb";
+
+export const g_ButtonPlus 		= "models/buttonPlus.glb";
+export const g_ButtonMinus 		= "models/buttonMinus.glb";
+export const g_ButtonDivide 	= "models/buttonDivide.glb";
+export const g_ButtonMultiply 	= "models/buttonMultiply.glb";
+export const g_ButtonEquals 	= "models/buttonEquals.glb";
+export const g_ButtonDecimal 	= "models/buttonDecimal.glb";
+export const g_ButtonClear 		= "models/buttonClear.glb";
 
 enum CalcKey
 {
@@ -21,6 +43,7 @@ enum CalcKey
 	OpDivide	= 13,
 	OpEquals	= 14,
 	OpDecimal	= 15,
+	OpClear		= 16,
 }
 
 enum CalcState
@@ -45,6 +68,18 @@ class CalcImpl
 
 	public processKey( key: CalcKey )
 	{
+		if( key == CalcKey.OpClear )
+		{
+			// clear always clears no matter the state
+			this.state = CalcState.StartingNumber;
+			this.decimalPlace = 1;
+			this.currentValue = 0;
+			this.previousValue = 0;
+			this.sign = 1;
+			this.pendingOperation = CalcKey.OpEquals;
+			return;
+		}
+
 		switch( this.state )
 		{
 			case CalcState.ShowingPrevious:
@@ -202,22 +237,91 @@ class CalcImpl
 	}
 }
 
+const k_cellSize = 0.03;
+const k_buttonScale = 0.25;
+
+const k_grabbableVolume: AvVolume =
+{
+	type: EVolumeType.AABB,
+	aabb: 
+	{
+		xMin: -2.0 * k_cellSize,
+		xMax: 2.0 * k_cellSize,
+		yMin: -1.5 * k_cellSize,
+		yMax: -0.5 * k_cellSize,
+		zMin: -0.1 * k_cellSize,
+		zMax: 0.1 * k_cellSize,
+	}
+};
+
 class MyGadget extends React.Component< {}, {} >
 {
+	private impl = new CalcImpl();
+
 	constructor( props: any )
 	{
 		super( props );
 		this.state = {};
 	}
 
+	private renderKey( buttonModel: string, x: number, y: number, key: CalcKey )
+	{
+
+		return <AvTransform translateX={ x * k_cellSize } translateY={ y * k_cellSize} 
+			uniformScale={ k_buttonScale } rotateX={ 90 }>
+			<AvGrabButton modelUri={ buttonModel } onClick={ ()=> 
+				{ 
+					this.impl.processKey( key );
+					this.forceUpdate();
+				} }/>
+		</AvTransform>
+	}
+
 	public render()
 	{
 		return (
-			<AvStandardGrabbable modelUri={ g_builtinModelBox } modelScale={ 0.03 } 
-				modelColor="lightblue" style={ GrabbableStyle.Gadget } remoteInterfaceLocks={ [] } >
-				{ 
-					/* gadget contents go here */ 
-				}
+			<AvStandardGrabbable volume={ k_grabbableVolume }
+				appearance={
+					<AvTransform uniformScale={ k_buttonScale }
+						translateY={ k_cellSize * -1 }
+						rotateX={ 90 }>
+							<AvModel uri={ g_CalcHandle } />
+						</AvTransform> }
+				style={ GrabbableStyle.Gadget } remoteInterfaceLocks={ [] } >
+
+				{ this.renderKey( g_Button0, -1, 0.5, CalcKey.Number0 ) }
+				{ this.renderKey( g_ButtonDecimal, 0.5, 0.5, CalcKey.OpDecimal ) }
+
+				{ this.renderKey( g_Button1, -1.5, 1.5, CalcKey.Number1 ) }
+				{ this.renderKey( g_Button2, -0.5, 1.5, CalcKey.Number2 ) }
+				{ this.renderKey( g_Button3,  0.5, 1.5, CalcKey.Number3 ) }
+				
+				{ this.renderKey( g_Button4, -1.5, 2.5, CalcKey.Number4 ) }
+				{ this.renderKey( g_Button5, -0.5, 2.5, CalcKey.Number5 ) }
+				{ this.renderKey( g_Button6,  0.5, 2.5, CalcKey.Number6 ) }
+
+				{ this.renderKey( g_Button7, -1.5, 3.5, CalcKey.Number7 ) }
+				{ this.renderKey( g_Button8, -0.5, 3.5, CalcKey.Number8 ) }
+				{ this.renderKey( g_Button9,  0.5, 3.5, CalcKey.Number9 ) }
+
+				{ this.renderKey( g_ButtonEquals, 1.5, 1, CalcKey.OpEquals ) }
+				{ this.renderKey( g_ButtonPlus,   1.5, 3, CalcKey.OpPlus ) }
+				{ this.renderKey( g_ButtonMinus,  1.5, 4.5, CalcKey.OpMinus ) }
+
+				{ this.renderKey( g_ButtonClear, 	-1.5, 4.5, CalcKey.OpClear ) }
+				{ this.renderKey( g_ButtonMultiply, -0.5, 4.5, CalcKey.OpMultiply ) }
+				{ this.renderKey( g_ButtonDivide, 	 0.5, 4.5, CalcKey.OpDivide ) }
+
+				<AvTransform translateY={ k_cellSize * 5.7 }>
+					<AvPrimitive type={ PrimitiveType.Cube } 
+						width={ k_cellSize * 4 } height={ k_cellSize * 1.0 } depth={ 0.005 }
+						color="black"/>
+					<AvTransform translateZ={ 0.002 }>
+						<AvPanel widthInMeters={ k_cellSize * 4.2 } >
+							<div className="GadgetOutput">{ this.impl.output }</div>
+						</AvPanel>
+					</AvTransform>
+				</AvTransform>
 			</AvStandardGrabbable>
 			);
 	}
@@ -242,35 +346,38 @@ class CalcTester extends React.Component< {}, {} >
 
 	public render()
 	{
-		return <div className="Controls">
-			<div className="Output">{ this.impl.output }</div>
-			<div className="Row">
-				{ this.renderKey( "+", CalcKey.OpPlus ) }
-				{ this.renderKey( "-", CalcKey.OpMinus ) }
-				{ this.renderKey( "X", CalcKey.OpMultiply ) }
-				{ this.renderKey( "÷", CalcKey.OpDivide ) }
+		return <>
+			<DefaultLanding/>
+			<div className="Controls">
+				<div className="Output">{ this.impl.output }</div>
+				<div className="Row">
+					{ this.renderKey( "+", CalcKey.OpPlus ) }
+					{ this.renderKey( "-", CalcKey.OpMinus ) }
+					{ this.renderKey( "X", CalcKey.OpMultiply ) }
+					{ this.renderKey( "÷", CalcKey.OpDivide ) }
+				</div>
+				<div className="Row">
+					{ this.renderKey( "7", CalcKey.Number7 ) }
+					{ this.renderKey( "8", CalcKey.Number8 ) }
+					{ this.renderKey( "9", CalcKey.Number9 ) }
+				</div>
+				<div className="Row">
+					{ this.renderKey( "4", CalcKey.Number4 ) }
+					{ this.renderKey( "5", CalcKey.Number5 ) }
+					{ this.renderKey( "6", CalcKey.Number6 ) }
+				</div>
+				<div className="Row">
+					{ this.renderKey( "1", CalcKey.Number1 ) }
+					{ this.renderKey( "2", CalcKey.Number2 ) }
+					{ this.renderKey( "3", CalcKey.Number3 ) }
+				</div>
+				<div className="Row">
+					{ this.renderKey( "0", CalcKey.Number0 ) }
+					{ this.renderKey( ".", CalcKey.OpDecimal ) }
+					{ this.renderKey( "=", CalcKey.OpEquals ) }
+				</div>
 			</div>
-			<div className="Row">
-				{ this.renderKey( "7", CalcKey.Number7 ) }
-				{ this.renderKey( "8", CalcKey.Number8 ) }
-				{ this.renderKey( "9", CalcKey.Number9 ) }
-			</div>
-			<div className="Row">
-				{ this.renderKey( "4", CalcKey.Number4 ) }
-				{ this.renderKey( "5", CalcKey.Number5 ) }
-				{ this.renderKey( "6", CalcKey.Number6 ) }
-			</div>
-			<div className="Row">
-				{ this.renderKey( "1", CalcKey.Number1 ) }
-				{ this.renderKey( "2", CalcKey.Number2 ) }
-				{ this.renderKey( "3", CalcKey.Number3 ) }
-			</div>
-			<div className="Row">
-				{ this.renderKey( "0", CalcKey.Number0 ) }
-				{ this.renderKey( ".", CalcKey.OpDecimal ) }
-				{ this.renderKey( "=", CalcKey.OpEquals ) }
-			</div>
-		</div>;
+		</>;
 	}
 }
 

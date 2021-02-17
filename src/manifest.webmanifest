@@ -3,7 +3,7 @@
 	"name": "Calculator",
 	"icons": [
 		{
-			"src": "models/placeholder.glb",
+			"src": "models/CalculatorIcon.glb",
 			"type": "model/gltf-binary"
 		}
 	],
@@ -11,8 +11,8 @@
 		"permissions": [
 			"scenegraph"
 		],
-		"browserWidth": 16,
-		"browserHeight": 16,
+		"browserWidth": 512,
+		"browserHeight": 128,
 		"startAutomatically": false
 	}
 }
