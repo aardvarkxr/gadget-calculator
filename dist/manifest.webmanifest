@@ -1,0 +1,18 @@
+{
+	"xr_type": "aardvark-gadget@^1.5.1",
+	"name": "Calculator",
+	"icons": [
+		{
+			"src": "models/CalculatorIcon.glb",
+			"type": "model/gltf-binary"
+		}
+	],
+	"aardvark": {
+		"permissions": [
+			"scenegraph"
+		],
+		"browserWidth": 512,
+		"browserHeight": 128,
+		"startAutomatically": false
+	}
+}

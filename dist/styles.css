@@ -1,0 +1,95 @@
+body, html
+{
+	background-color: transparent;
+	height: 100%;
+	margin: 0;
+}
+
+.Button 
+{
+	background-color: lightcoral;
+	font-size: 4rem;
+}
+
+.Label
+{
+	font-size: 4rem;
+}
+.Button:hover
+{
+	background-color: red;
+}
+
+.FullPage
+{
+	width: 100%;
+	height: 100%;
+}
+
+.NoGrabHighlight
+{
+	background-color: white;
+}
+
+.InRangeHighlight
+{
+	background-color: lightblue;
+}
+
+.GrabbedHighlight
+{
+	background-color: blue;
+}
+
+.Controls
+{
+	display: flex;
+	flex-direction: column;
+}
+
+.Row
+{
+	display:flex;
+	flex-direction: row;
+}
+
+.Output
+{
+	background-color: black;
+	color: chartreuse;
+	font-family: 'Courier New', Courier, monospace;
+	width: 30rem;
+	height: 2rem;
+	font-style: bold;
+	font-size: 2rem;
+	text-align: right;
+}
+
+.GadgetOutput
+{
+	background-color: black;
+	color: chartreuse;
+	font-family: 'Courier New', Courier, monospace;
+	width: 100%;
+	height: 100%;
+	font-style: bold;
+	font-size: 6rem;
+	text-align: right;
+}
+
+.Key
+{
+	min-width: 2rem;
+	min-height: 2rem;
+	font-size: 1.5rem;
+	font-style: bold;
+	text-align: center;
+	background-color: darkgoldenrod;
+	border: 2px rebeccapurple;
+	margin: 3px;
+}
+
+.Key:hover
+{
+	background-color: goldenrod;
+}
